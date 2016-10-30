@@ -6,4 +6,6 @@ sudo yum install gcc
 sudo yum install libxml2-devel libxslt-devel python-devel
 sudo yum install libxml2-devel libxslt-devel python-devel
 pip install requests -t ./
+pip install pytz -t  ./
+# Crap, this doesn't always work, need to remember how i fixed it
 pip install lxml -t  ./
