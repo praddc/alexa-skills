@@ -15,7 +15,8 @@ import pytz
 
 
 def state_washington(body_of_water):
-    url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=profile&buoy={}&year={}&month={}'
+    water_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=profile&buoy={}&year={}&month={}'
+    air_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=met&buoy={}&year={}&month={}'
 
     if body_of_water == 'lake washington':
         buoy = 'wa'
@@ -26,16 +27,20 @@ def state_washington(body_of_water):
 
     current_month = time.strftime("%m")
     current_year = time.strftime("%Y")
-    url_to_use = url.format(buoy, current_year, current_month)
-    r = requests.get(url_to_use)
 
+    # First let's get the water temperature from the buoy data
+    # We're going to get back this awesome ASPX table that we'll have to disect
+    url_to_use = water_temp_url.format(buoy, current_year, current_month)
+    r = requests.get(url_to_use)
     table_start = r.content.find('<table')
     table_end = r.content.find('</table>') + 8
     table_string = r.content[table_start:table_end]
 
-    latest_date = datetime.strptime('01/01/2000', "%m/%d/%Y")
+    # Now we have the string from the response that is the table.
+    # Let's look for the latest temp at a reasonable (< 1.5m) depth. Record the date/time/temp
+    latest_date_water_temp = datetime.strptime('01/01/2000', "%m/%d/%Y")
     # latest_depth = 0
-    latest_temp = 0
+    latest_temp_water = 0
 
     table = etree.XML(table_string)
     rows = iter(table)
@@ -47,31 +52,72 @@ def state_washington(body_of_water):
             temp_c = float(row_dict.get(u'Temperature (\xb0C)'))
             temp_f = temp_c * 1.8 + 32
             date_object = datetime.strptime(row_dict.get('Date'), "%m/%d/%Y %I:%M:%S %p")
-            if date_object >= latest_date:
-                latest_date = date_object
+            if date_object >= latest_date_water_temp:
+                latest_date_water_temp = date_object
                 # latest_depth = row_dict.get('Depth (m)')
-                latest_temp = temp_f
+                latest_temp_water = temp_f
+    # Excellent, now we have our most recent water temp
+    latest_temp_water = round(latest_temp_water, 1)
 
-    latest_temp = round(latest_temp, 1)
+    # Now let's get the air temperature from the buoy data
+    # We're going to get back this awesome ASPX table that we'll have to disect
+    url_to_use = air_temp_url.format(buoy, current_year, current_month)
+    r = requests.get(url_to_use)
+    table_start = r.content.find('<table')
+    table_end = r.content.find('</table>') + 8
+    table_string = r.content[table_start:table_end]
 
-    # Need to make this aware of the time zone
-    tz = pytz.timezone('US/Pacific')
-    latest_date_tz = tz.localize(latest_date)
-    time_diff = datetime.now(tz) - latest_date_tz
-    # time_diff = datetime.now() - latest_date
-    if time_diff.days > 0:
-        hours_diff = time_diff.days * 24
-        hours_diff += time_diff.seconds / 60 / 60
-    else:
-        hours_diff = time_diff.seconds / 60 / 60
+    # Now we have the string from the response that is the table.
+    # Let's look for the latest temp at a reasonable (< 1.5m) depth. Record the date/time/temp
+    latest_date_air_temp = datetime.strptime('01/01/2000', "%m/%d/%Y")
+    latest_temp_air = 0
 
-    if latest_date == datetime.strptime('01/01/2000', "%m/%d/%Y"):
+    table = etree.XML(table_string)
+    rows = iter(table)
+    headers = [col.text for col in next(rows)]
+    for row in rows:
+        values = [col.text for col in row]
+        row_dict = dict(zip(headers, values))
+        temp_c = float(row_dict.get(u'Air Temperature (\xb0C)'))
+        temp_f = temp_c * 1.8 + 32
+        date_object = datetime.strptime(row_dict.get('Date'), "%m/%d/%Y %I:%M:%S %p")
+        if date_object >= latest_date_air_temp:
+            latest_date_air_temp = date_object
+            # latest_depth = row_dict.get('Depth (m)')
+            latest_temp_air = temp_f
+    # Excellent, now we have our most recent water temp
+    latest_temp_air = round(latest_temp_air, 1)
+
+    if latest_date_water_temp == datetime.strptime('01/01/2000', "%m/%d/%Y") and \
+       latest_date_air_temp == datetime.strptime('01/01/2000', "%m/%d/%Y"):
         # This means we didn't find anythiing
         retval = "I'm sorry, I couldn't find any recent data about the weather on {}".format(body_of_water)
     else:
-        # print("Date: {}, Depth (m): {}, Temp: {}".format(latest_date, latest_depth, latest_temp))
-        retval = "Last known conditions on {} include water temperature " \
-                 "of {} degrees fahrenheit, about {} hours ago".format(body_of_water, latest_temp, hours_diff)
+        retval = "Last known conditions on {} include: ".format(body_of_water)
+        if latest_date_water_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
+            # Need to make this aware of the time zone
+            tz = pytz.timezone('US/Pacific')
+            latest_date_tz = tz.localize(latest_date_water_temp)
+            time_diff = datetime.now(tz) - latest_date_tz
+            # time_diff = datetime.now() - latest_date_water_temp
+            if time_diff.days > 0:
+                hours_diff = time_diff.days * 24
+                hours_diff += time_diff.seconds / 60 / 60
+            else:
+                hours_diff = time_diff.seconds / 60 / 60
+            retval += "Water temperature of {} degrees fahrenheit, about {} hours ago".format(latest_temp_water, hours_diff)
+        if latest_date_air_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
+            # Need to make this aware of the time zone
+            tz = pytz.timezone('US/Pacific')
+            latest_date_tz = tz.localize(latest_date_air_temp)
+            time_diff = datetime.now(tz) - latest_date_tz
+            # time_diff = datetime.now() - latest_date_water_temp
+            if time_diff.days > 0:
+                hours_diff = time_diff.days * 24
+                hours_diff += time_diff.seconds / 60 / 60
+            else:
+                hours_diff = time_diff.seconds / 60 / 60
+            retval += "Air temperature of {} degrees fahrenheit, about {} hours ago".format(latest_temp_air, hours_diff)
     return retval
 
 # --------------- Some GLOBALS that need to come after we define the state functions ----------------------
