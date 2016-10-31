@@ -14,6 +14,16 @@ from lxml import etree
 import pytz
 
 
+def mps_to_mph(mps):
+    return 2.23694 * mps
+
+
+def deg_to_compass(num):
+    val = int((num/22.5)+.5)
+    arr = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
+    return arr[(val % 16)]
+
+
 def state_washington(body_of_water):
     water_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=profile&buoy={}&year={}&month={}'
     air_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=met&buoy={}&year={}&month={}'
@@ -71,6 +81,8 @@ def state_washington(body_of_water):
     # Let's look for the latest temp at a reasonable (< 1.5m) depth. Record the date/time/temp
     latest_date_air_temp = datetime.strptime('01/01/2000', "%m/%d/%Y")
     latest_temp_air = 0
+    latest_wind_air_speed = 0
+    latest_wind_air_dir = ''
 
     table = etree.XML(table_string)
     rows = iter(table)
@@ -83,8 +95,9 @@ def state_washington(body_of_water):
         date_object = datetime.strptime(row_dict.get('Date'), "%m/%d/%Y %I:%M:%S %p")
         if date_object >= latest_date_air_temp:
             latest_date_air_temp = date_object
-            # latest_depth = row_dict.get('Depth (m)')
             latest_temp_air = temp_f
+            latest_wind_air_speed = float(row_dict.get(u'Wind Speed (m/sec)'))
+            latest_wind_air_dir = float(row_dict.get(u'Wind Direction (degrees)'))
     # Excellent, now we have our most recent water temp
     latest_temp_air = round(latest_temp_air, 1)
 
@@ -94,6 +107,7 @@ def state_washington(body_of_water):
         retval = "I'm sorry, I couldn't find any recent data about the weather on {}".format(body_of_water)
     else:
         retval = "Last known conditions on {} include: ".format(body_of_water)
+        num_values = 0
         if latest_date_water_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
             # Need to make this aware of the time zone
             tz = pytz.timezone('US/Pacific')
@@ -106,6 +120,7 @@ def state_washington(body_of_water):
             else:
                 hours_diff = time_diff.seconds / 60 / 60
             retval += "Water temperature of {} degrees fahrenheit, about {} hours ago".format(latest_temp_water, hours_diff)
+            num_values += 1
         if latest_date_air_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
             # Need to make this aware of the time zone
             tz = pytz.timezone('US/Pacific')
@@ -117,7 +132,12 @@ def state_washington(body_of_water):
                 hours_diff += time_diff.seconds / 60 / 60
             else:
                 hours_diff = time_diff.seconds / 60 / 60
-            retval += "Air temperature of {} degrees fahrenheit, about {} hours ago".format(latest_temp_air, hours_diff)
+            if num_values > 0:
+                retval += " and "
+            retval += "Air temperature of {} degrees fahrenheit, ".format(latest_temp_air)
+            retval += "wind speed of {} ".format(round(mps_to_mph(latest_wind_air_speed), 1))
+            retval += "coming from the {},".format(latest_wind_air_dir)
+            retval += "about {} hours ago".format(hours_diff)
     return retval
 
 # --------------- Some GLOBALS that need to come after we define the state functions ----------------------
