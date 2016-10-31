@@ -133,7 +133,7 @@ def state_washington(body_of_water):
                 hours_diff += time_diff.seconds / 60 / 60
             else:
                 hours_diff = time_diff.seconds / 60 / 60
-            retval += "Water temperature of {} degrees fahrenheit, about {} hours ago".format(latest_temp_water, hours_diff)
+            retval += "Water temperature of {} degrees fahrenheit about {} hours ago".format(latest_temp_water, hours_diff)
             num_values += 1
         if latest_date_air_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
             # Need to make this aware of the time zone
@@ -150,7 +150,7 @@ def state_washington(body_of_water):
                 retval += ", and "
             retval += "Air temperature of {} degrees fahrenheit, ".format(latest_temp_air)
             retval += "wind speed of {} miles per hour ".format(round(mps_to_mph(latest_wind_air_speed), 1))
-            retval += "coming from the {},".format(compass_to_words(deg_to_compass(latest_wind_air_dir)))
+            retval += "coming from the {}".format(compass_to_words(deg_to_compass(latest_wind_air_dir)))
             retval += "about {} hours ago".format(hours_diff)
     return retval
 
