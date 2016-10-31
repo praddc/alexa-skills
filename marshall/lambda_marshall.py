@@ -20,8 +20,22 @@ def mps_to_mph(mps):
 
 def deg_to_compass(num):
     val = int((num/22.5)+.5)
-    arr = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
+    arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     return arr[(val % 16)]
+
+
+def compass_to_words(direction):
+    retval = ''
+    for letter in direction:
+        if letter.upper() == 'N':
+            retval += 'north '
+        elif letter.upper() == 'E':
+            retval += 'east '
+        elif letter.upper() == 'S':
+            retval += 'south '
+        elif letter.upper() == 'W':
+            retval += 'west '
+    return retval
 
 
 def state_washington(body_of_water):
@@ -135,8 +149,8 @@ def state_washington(body_of_water):
             if num_values > 0:
                 retval += " and "
             retval += "Air temperature of {} degrees fahrenheit, ".format(latest_temp_air)
-            retval += "wind speed of {} ".format(round(mps_to_mph(latest_wind_air_speed), 1))
-            retval += "coming from the {},".format(deg_to_compass(latest_wind_air_dir))
+            retval += "wind speed of {} miles per hour ".format(round(mps_to_mph(latest_wind_air_speed), 1))
+            retval += "coming from the {},".format(compass_to_words(deg_to_compass(latest_wind_air_dir)))
             retval += "about {} hours ago".format(hours_diff)
     return retval
 
