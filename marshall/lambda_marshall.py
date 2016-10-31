@@ -136,7 +136,7 @@ def state_washington(body_of_water):
                 retval += " and "
             retval += "Air temperature of {} degrees fahrenheit, ".format(latest_temp_air)
             retval += "wind speed of {} ".format(round(mps_to_mph(latest_wind_air_speed), 1))
-            retval += "coming from the {},".format(latest_wind_air_dir)
+            retval += "coming from the {},".format(deg_to_compass(latest_wind_air_dir))
             retval += "about {} hours ago".format(hours_diff)
     return retval
 
