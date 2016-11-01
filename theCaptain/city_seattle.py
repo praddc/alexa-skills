@@ -29,8 +29,11 @@ def king_county_buoy(body_of_water):
     water_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=profile&buoy={}&year={}&month={}'
     air_temp_url = 'https://green2.kingcounty.gov/lake-buoy/DataScrape.aspx?type=met&buoy={}&year={}&month={}'
 
-    current_month = time.strftime("%m")
-    current_year = time.strftime("%Y")
+    # Of course we need to get the local timezones, since the buoy data is local to pacific
+    tz = pytz.timezone('US/Pacific')
+    dt = datetime.fromtimestamp(time.time(), tz)
+    current_month = dt.strftime('%m')
+    current_year = dt.strftime("%Y")
 
     # First let's get the water temperature from the buoy data
     # We're going to get back this awesome ASPX table that we'll have to disect

@@ -10,3 +10,5 @@
 *.pyc
 
 *.pyc
+
+.idea/alexa-theCaptain.iml
