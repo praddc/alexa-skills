@@ -1,7 +1,7 @@
 from datetime import datetime
 import time
-import BeautifulSoup
 
+from BeautifulSoup import BeautifulSoup
 from lxml import etree, html
 import pytz
 import requests
