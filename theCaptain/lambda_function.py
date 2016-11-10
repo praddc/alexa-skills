@@ -102,7 +102,7 @@ def get_weather(intent, session):
             speech_output = BODIES_OF_WATER[body_of_water](body_of_water)
             should_end_session = True
         else:
-            speech_output = "I don't know that body of water"
+            speech_output = "I'm sorry, I don't know that body of water"
         reprompt_text = "Please, Tell me again what body of water you are interested in."
     else:
         speech_output = "I don't know that body of water"
