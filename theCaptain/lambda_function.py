@@ -11,20 +11,11 @@ from __future__ import print_function
 import city_seattle
 
 
-# Here we have functions for all bodies of water in the US State of Washington
-def state_washington(body_of_water):
-    if body_of_water == 'lake washington':
-        return city_seattle.get_weather(body_of_water)
-    elif body_of_water == 'lake sammamish':
-        return city_seattle.get_weather(body_of_water)
-    else:
-        return "I'm sorry, I couldn't find that body of water"
-
-
 # --------------- Some GLOBALS that need to come after we define the state functions ----------------------
 BODIES_OF_WATER = dict()
-BODIES_OF_WATER["lake washington"] = state_washington
-BODIES_OF_WATER["lake sammamish"] = state_washington
+BODIES_OF_WATER["lake washington"] = city_seattle.get_weather
+BODIES_OF_WATER["lake sammamish"] = city_seattle.get_weather
+BODIES_OF_WATER["lake union"] = city_seattle.get_weather
 
 
 # --------------- Helpers that build all of the responses ----------------------
@@ -67,7 +58,7 @@ def get_welcome_response():
 
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to Marshall. " \
+    speech_output = "Welcome to the Captain. " \
                     "Please tell me what body of water you'd like to know the weather for."
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
@@ -101,7 +92,7 @@ def get_weather(intent, session):
             speech_output = BODIES_OF_WATER[body_of_water](body_of_water)
             should_end_session = True
         else:
-            speech_output = "I don't know that body of water"
+            speech_output = "I'm sorry, I don't know that body of water"
         reprompt_text = "Please, Tell me again what body of water you are interested in."
     else:
         speech_output = "I don't know that body of water"
