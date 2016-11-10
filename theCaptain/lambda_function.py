@@ -25,6 +25,7 @@ def state_washington(body_of_water):
 BODIES_OF_WATER = dict()
 BODIES_OF_WATER["lake washington"] = state_washington
 BODIES_OF_WATER["lake sammamish"] = state_washington
+BODIES_OF_WATER["lake union"] = city_seattle.get_weather
 
 
 # --------------- Helpers that build all of the responses ----------------------
