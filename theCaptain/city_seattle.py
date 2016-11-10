@@ -1,5 +1,6 @@
 from datetime import datetime
 import time
+import re
 
 from lxml import etree, html
 import pytz
@@ -22,12 +23,15 @@ def get_weather(body_of_water):
 # If we're getting the data from the Lake Union Weather webpage
 def lake_union_weather():
     url_to_use = 'https://lakeunionweather.info'
-    r = requests.get(url_to_use)
-    tree = html.fromstring(r.content)
+    page = requests.get(url_to_use)
+    tree = html.fromstring(page.content)
     atmosphere_data = tree.xpath('//div[@class="AtmosData"]/text()')
     water_data = tree.xpath('//div[@class="WaterData"]/text()')
+
+    m = re.search(r'(\w*)(<div class="AtmosData">)(.*)(<\/div>)', page.content)
     print "atmos: {}".format(atmosphere_data)
     print "water: {}".format(water_data)
+    print "m: {}".format(m)
 
     return
 
