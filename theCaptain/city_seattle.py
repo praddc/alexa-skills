@@ -26,36 +26,77 @@ def lake_union_weather():
     page = requests.get(url_to_use)
     soup = BeautifulSoup(page.content)
     try:
+        header_data = soup.findAll("div", {"id": "Header"})[0]
         atmosphere_data = soup.findAll("table", {"id": "WeatherTable"})[0]
         water_data = soup.findAll("table", {"id": "WaterTable"})[0]
     except IndexError:
         pass
 
+    # First lets get the date and time out of this
+    info_date = None
+    date_data = header_data.findAll('h4')[0]
+    date_data = BeautifulSoup("{}".format(date_data)).getText()
+    date_string = date_data.split('recorded on')[1].strip()
+    info_date = datetime.strptime(date_string, "%d %b %Y %I:%M %p")
+
+    # This is a gross way to get all the data from the table, but so it goes
     air_temp_f = None
-    table = etree.XML("{}".format(atmosphere_data))
-    rows = iter(table)
-    headers = [col.text for col in next(rows)]
-    for row in rows:
-        values = [col.text for col in row]
-        row_dict = dict(zip(headers, values))
-        # The first column is empty, so we're looking for the row that starts with 'Temperature'
-        if float(row_dict.get('')) == 'Temperature':
-            air_temp_f = float(row_dict.get('Current (Hr. change)'))
+    wind_chill_f = None
+    avg_windspeed_dir = None
+    avg_windspeed_mph = None
+    for tr in BeautifulSoup("{}".format(atmosphere_data)).findAll('tr')[1:]:
+        ths = BeautifulSoup("{}".format(tr.findAll('th')[0])).getText()
+        tds = BeautifulSoup("{}".format(tr.findAll('td')[0])).getText()
+        if ths.find('Temperature') >= 0:
+            air_temp_f = tds.split('&#176;F')[0]
+        elif ths.find('Wind Chill') >= 0:
+            wind_chill_f = tds.split('&#176;F')[0]
+        elif ths.find('Av. Windspeed') >= 0:
+            avg_windspeed_mph = tds.split('MPH')[0].strip()
+            avg_windspeed_dir = tds.split('from the')[1].strip()
 
+        # This is a gross way to get all the data from the table, but so it goes
     water_temp_f = None
-    table = etree.XML("{}".format(water_data))
-    rows = iter(table)
-    headers = [col.text for col in next(rows)]
-    for row in rows:
-        values = [col.text for col in row]
-        row_dict = dict(zip(headers, values))
-        if float(row_dict.get('Depth in feet')) <= 3:
-            water_temp_f = float(row_dict.get('Temperature in fahrenheit'))
+    for tr in BeautifulSoup("{}".format(water_data)).findAll('tr')[1:]:
+        tds = tr.findAll('td')
+        if float(BeautifulSoup("{}".format(tds[0])).getText()) < 5:
+            water_temp_f = float(BeautifulSoup("{}".format(tds[1])).getText())
 
-    print "air: {}".format(air_temp_f)
-    print "water: {}".format(water_temp_f)
+    # Now let's find the time diff when we got this
+    if info_date is None:
+        time_string = ""
+    else:
+        # Need to make this aware of the time zone
+        tz = pytz.timezone('US/Pacific')
+        latest_date_tz = tz.localize(info_date)
+        time_diff = datetime.now(tz) - latest_date_tz
+        # time_diff = datetime.now() - latest_date_water_temp
+        if time_diff.days > 0:
+            hours_diff = time_diff.days * 24
+            hours_diff += time_diff.seconds / 60 / 60
+        else:
+            hours_diff = time_diff.seconds / 60 / 60
+        time_string = " about {} hours ago".format(hours_diff)
 
-    return
+    if air_temp_f is None and water_temp_f is None:
+        # This means we didn't find anythiing
+        retval = "I'm sorry, I couldn't find any recent data about the weather on lake union"
+    else:
+        retval = "Last known conditions on lake union include: "
+        num_values = 0
+        if air_temp_f is not None:
+            retval += "Water temperature of {} degrees fahrenheit{}".format(round(air_temp_f), time_string)
+            num_values += 1
+        if air_temp_f is not None:
+            if num_values > 0:
+                retval += ", and "
+            retval += "Air temperature of {} degrees fahrenheit, ".format(round(air_temp_f))
+            retval += "Wind chill of {} degrees fahrenheit, ".format(round(wind_chill_f))
+            retval += "wind speed of {} miles per hour ".format(round(utils.mps_to_mph(avg_windspeed_mph), 1))
+            retval += "coming from the {}".format(utils.compass_to_words(utils.compass_to_words(avg_windspeed_dir)))
+            retval += "{}".format(time_string)
+
+    return retval
 
 
 # If we're getting the data from King County buoy data
