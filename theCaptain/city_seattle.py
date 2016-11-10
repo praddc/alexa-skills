@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-import re
+import BeautifulSoup
 
 from lxml import etree, html
 import pytz
@@ -24,14 +24,35 @@ def get_weather(body_of_water):
 def lake_union_weather():
     url_to_use = 'https://lakeunionweather.info'
     page = requests.get(url_to_use)
-    tree = html.fromstring(page.content)
-    atmosphere_data = tree.xpath('//div[@class="AtmosData"]/text()')
-    water_data = tree.xpath('//div[@class="WaterData" id="Water"]/text()')
+    soup = BeautifulSoup(page.content)
+    try:
+        atmosphere_data = soup.findAll("table", {"id": "WeatherTable"})[0]
+        water_data = soup.findAll("table", {"id": "WaterTable"})[0]
+    except IndexError:
+        pass
 
-    m = re.search(r'(\w*)(<div class="WaterData" id="Water">)(.*)(<\/div>)', page.content)
-    print "atmos: {}".format(atmosphere_data)
-    print "water: {}".format(water_data)
-    print "m: {}".format(m)
+    air_temp_f = None
+    table = etree.XML(atmosphere_data)
+    rows = iter(table)
+    headers = [col.text for col in next(rows)]
+    for row in rows:
+        values = [col.text for col in row]
+        row_dict = dict(zip(headers, values))
+        # The first column is empty, so we're looking for the row that starts with 'Temperature'
+        if float(row_dict.get('')) == 'Temperature':
+            air_temp_f = float(row_dict.get('Current (Hr. change)'))
+
+    water_temp_f = None
+    table = etree.XML(water_data)
+    rows = iter(table)
+    headers = [col.text for col in next(rows)]
+    for row in rows:
+        values = [col.text for col in row]
+        row_dict = dict(zip(headers, values))
+        if float(row_dict.get('Depth in feet')) <= 3:
+            water_temp_f = float(row_dict.get('Temperature in fahrenheit'))
+
+
 
     return
 
