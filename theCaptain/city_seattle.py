@@ -32,7 +32,7 @@ def lake_union_weather():
         pass
 
     air_temp_f = None
-    table = etree.XML(atmosphere_data)
+    table = etree.XML("{}".format(atmosphere_data))
     rows = iter(table)
     headers = [col.text for col in next(rows)]
     for row in rows:
@@ -43,7 +43,7 @@ def lake_union_weather():
             air_temp_f = float(row_dict.get('Current (Hr. change)'))
 
     water_temp_f = None
-    table = etree.XML(water_data)
+    table = etree.XML("{}".format(water_data))
     rows = iter(table)
     headers = [col.text for col in next(rows)]
     for row in rows:
@@ -52,7 +52,8 @@ def lake_union_weather():
         if float(row_dict.get('Depth in feet')) <= 3:
             water_temp_f = float(row_dict.get('Temperature in fahrenheit'))
 
-
+    print "air: {}".format(air_temp_f)
+    print "water: {}".format(water_temp_f)
 
     return
 
