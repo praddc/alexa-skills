@@ -85,14 +85,14 @@ def lake_union_weather():
         retval = "Last known conditions on lake union include: "
         num_values = 0
         if air_temp_f is not None:
-            retval += "Water temperature of {} degrees fahrenheit{}".format(round(air_temp_f), time_string)
+            retval += "Water temperature of {} degrees fahrenheit{}".format(int(round(air_temp_f)), time_string)
             num_values += 1
         if air_temp_f is not None:
             if num_values > 0:
                 retval += ", and "
-            retval += "Air temperature of {} degrees fahrenheit, ".format(round(air_temp_f))
-            retval += "Wind chill of {} degrees fahrenheit, ".format(round(wind_chill_f))
-            retval += "wind speed of {} miles per hour ".format(round(utils.mps_to_mph(avg_windspeed_mph), 1))
+            retval += "Air temperature of {} degrees fahrenheit, ".format(int(round(air_temp_f)))
+            retval += "Wind chill of {} degrees fahrenheit, ".format(int(round(wind_chill_f)))
+            retval += "wind speed of {} miles per hour ".format(int(round(utils.mps_to_mph(avg_windspeed_mph)), 1))
             retval += "coming from the {}".format(utils.compass_to_words(utils.compass_to_words(avg_windspeed_dir)))
             retval += "{}".format(time_string)
 
@@ -198,7 +198,7 @@ def king_county_buoy(body_of_water):
                 hours_diff += time_diff.seconds / 60 / 60
             else:
                 hours_diff = time_diff.seconds / 60 / 60
-            retval += "Water temperature of {} degrees fahrenheit about {} hours ago".format(round(latest_temp_water),
+            retval += "Water temperature of {} degrees fahrenheit about {} hours ago".format(int(round(latest_temp_water)),
                                                                                              hours_diff)
             num_values += 1
         if latest_date_air_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
@@ -214,8 +214,8 @@ def king_county_buoy(body_of_water):
                 hours_diff = time_diff.seconds / 60 / 60
             if num_values > 0:
                 retval += ", and "
-            retval += "Air temperature of {} degrees fahrenheit, ".format(round(latest_temp_air))
-            retval += "wind speed of {} miles per hour ".format(round(utils.mps_to_mph(latest_wind_air_speed), 1))
+            retval += "Air temperature of {} degrees fahrenheit, ".format(int(round(latest_temp_air)))
+            retval += "wind speed of {} miles per hour ".format(int(round(utils.mps_to_mph(latest_wind_air_speed)), 1))
             retval += "coming from the {}".format(utils.compass_to_words(utils.deg_to_compass(latest_wind_air_dir)))
             retval += "about {} hours ago".format(hours_diff)
     return retval
