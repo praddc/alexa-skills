@@ -93,8 +93,7 @@ def lake_union_weather():
             retval += "Air temperature of {:.0f} degrees fahrenheit, ".format(round(air_temp_f))
             retval += "Wind chill of {:.0f} degrees fahrenheit, ".format(round(wind_chill_f))
             retval += "wind speed of {:.0f} miles per hour ".format(round(utils.mps_to_mph(avg_windspeed_mph), 1))
-            retval += "coming from the {}".format(utils.compass_to_words(utils.compass_to_words(avg_windspeed_dir)))
-            print avg_windspeed_dir
+            retval += "coming from the {}".format(utils.compass_to_words(avg_windspeed_dir))
         retval += "{}".format(time_string)
     return retval
 
