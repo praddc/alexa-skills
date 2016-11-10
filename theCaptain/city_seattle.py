@@ -48,11 +48,11 @@ def lake_union_weather():
         ths = BeautifulSoup("{}".format(tr.findAll('th')[0])).getText()
         tds = BeautifulSoup("{}".format(tr.findAll('td')[0])).getText()
         if ths.find('Temperature') >= 0:
-            air_temp_f = tds.split('&#176;F')[0]
+            air_temp_f = float(tds.split('&#176;F')[0])
         elif ths.find('Wind Chill') >= 0:
-            wind_chill_f = tds.split('&#176;F')[0]
+            wind_chill_f = float(tds.split('&#176;F')[0])
         elif ths.find('Av. Windspeed') >= 0:
-            avg_windspeed_mph = tds.split('MPH')[0].strip()
+            avg_windspeed_mph = float(tds.split('MPH')[0].strip())
             avg_windspeed_dir = tds.split('from the')[1].strip()
 
         # This is a gross way to get all the data from the table, but so it goes
