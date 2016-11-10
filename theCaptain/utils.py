@@ -13,6 +13,13 @@ def deg_to_compass(num):
 # This translates compass directions into a string that the Alexa Skills Kit can verbalize
 def compass_to_words(direction):
     retval = ''
+
+    # Get rid of the word 'by' if it's in there
+    if direction.find('by') >= 0:
+        direction.replace('by', '')
+    # Get rid of any spaces
+    direction.replace(' ', '')
+
     for letter in direction:
         if letter.upper() == 'N':
             retval += 'north '
