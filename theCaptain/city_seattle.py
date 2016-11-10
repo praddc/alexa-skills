@@ -95,7 +95,6 @@ def lake_union_weather():
             retval += "wind speed of {:.0f} miles per hour ".format(round(utils.mps_to_mph(avg_windspeed_mph), 1))
             retval += "coming from the {}".format(utils.compass_to_words(utils.compass_to_words(avg_windspeed_dir)))
             retval += "{}".format(time_string)
-
     return retval
 
 

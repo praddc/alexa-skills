@@ -12,6 +12,7 @@ def deg_to_compass(num):
 
 # This translates compass directions into a string that the Alexa Skills Kit can verbalize
 def compass_to_words(direction):
+    # Start with nothing
     retval = ''
 
     # Get rid of the word 'by' if it's in there
