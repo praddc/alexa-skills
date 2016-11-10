@@ -1,7 +1,7 @@
 from datetime import datetime
 import time
 
-from lxml import etree
+from lxml import etree, html
 import pytz
 import requests
 
@@ -13,8 +13,23 @@ def get_weather(body_of_water):
         return king_county_buoy(body_of_water)
     elif body_of_water == 'lake sammamish':
         return king_county_buoy(body_of_water)
+    elif body_of_water == 'lake union':
+        return lake_union_weather()
     else:
         return "I'm sorry, I couldn't find that body of water"
+
+
+# If we're getting the data from the Lake Union Weather webpage
+def lake_union_weather():
+    url_to_use = 'https://lakeunionweather.info'
+    r = requests.get(url_to_use)
+    tree = html.fromstring(r.content)
+    atmosphere_data = tree.xpath('//div[@class="AtmosData"]/text()')
+    water_data = tree.xpath('//div[@class="WaterData"]/text()')
+    print "atmos: {}".format(atmosphere_data)
+    print "water: {}".format(water_data)
+
+    return
 
 
 # If we're getting the data from King County buoy data
@@ -116,7 +131,8 @@ def king_county_buoy(body_of_water):
                 hours_diff += time_diff.seconds / 60 / 60
             else:
                 hours_diff = time_diff.seconds / 60 / 60
-            retval += "Water temperature of {} degrees fahrenheit about {} hours ago".format(latest_temp_water, hours_diff)
+            retval += "Water temperature of {} degrees fahrenheit about {} hours ago".format(round(latest_temp_water),
+                                                                                             hours_diff)
             num_values += 1
         if latest_date_air_temp != datetime.strptime('01/01/2000', "%m/%d/%Y"):
             # Need to make this aware of the time zone
@@ -131,7 +147,7 @@ def king_county_buoy(body_of_water):
                 hours_diff = time_diff.seconds / 60 / 60
             if num_values > 0:
                 retval += ", and "
-            retval += "Air temperature of {} degrees fahrenheit, ".format(latest_temp_air)
+            retval += "Air temperature of {} degrees fahrenheit, ".format(round(latest_temp_air))
             retval += "wind speed of {} miles per hour ".format(round(utils.mps_to_mph(latest_wind_air_speed), 1))
             retval += "coming from the {}".format(utils.compass_to_words(utils.deg_to_compass(latest_wind_air_dir)))
             retval += "about {} hours ago".format(hours_diff)
